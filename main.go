@@ -1,11 +1,12 @@
 package main
 
 import (
-	"examples/log_agent/conf"
-	"examples/log_agent/kafka"
-	"examples/log_agent/tailLog"
 	"fmt"
 	"gopkg.in/ini.v1"
+	"log_agent/conf"
+	"log_agent/etcd"
+	"log_agent/kafka"
+	"log_agent/tailLog"
 	"time"
 )
 
@@ -24,7 +25,20 @@ func main() {
 		return
 	}
 	fmt.Printf("init Kafka \n")
-	// 2.打开日志文件准备收集日志
+
+	// 2.初始化ETCD
+	err = etcd.Init(cfg.EtcdConf.Address, time.Duration(cfg.EtcdConf.TimeOut)*time.Second)
+	if err != nil {
+		fmt.Printf("init etcd failed, err :%v \n", err)
+		return
+	}
+	fmt.Println("init etcd success")
+
+	// 2.1 从etcd 中获取日志收集项的配置信息
+
+	// 2.2 派一个哨兵去监视日志手机的变化
+
+	// 3.打开日志文件准备收集日志
 	err = tailLog.Init(cfg.FileName)
 	if err != nil {
 		fmt.Printf("init tailLog failed, err:%v\n", err)
