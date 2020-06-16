@@ -34,32 +34,22 @@ func main() {
 	}
 	fmt.Println("init etcd success")
 
+	// 写入etcdConf
+	//err = etcd.PutConf(cfg.EtcdConf.Key, `[{"path":"c:/tmp/nginx.log","topic":"web_log"},{"path":"d:/xxx/redis.log","topic":"redis_log"}]`)
+	//if err != nil {
+	//	fmt.Printf("etcd PutConf err :%v\n", err)
+	//}
+
 	// 2.1 从etcd 中获取日志收集项的配置信息
-
-	// 2.2 派一个哨兵去监视日志手机的变化
-
-	// 3.打开日志文件准备收集日志
-	err = tailLog.Init(cfg.FileName)
+	logEntryConf, err := etcd.GetConf(cfg.EtcdConf.Key)
 	if err != nil {
-		fmt.Printf("init tailLog failed, err:%v\n", err)
+		fmt.Printf("etcd.GetConf failed, err:%v\n", err)
 		return
 	}
-	fmt.Printf("init tailLog Success\n")
+	fmt.Printf("get conf from etcd success :%v \n", logEntryConf)
 
-	run()
+	// 3.打开日志文件准备收集日志
+	// 3.1 循环收集每一个收集项 创建tailObj
+	tailLog.Init(logEntryConf)
 
-}
-
-func run() {
-	/************************ 读取日志 ******************/
-	for {
-		select {
-		/************************ 发送到kafka ******************/
-		case line := <-tailLog.ReadChan():
-			kafka.Send2Kafka(cfg.KafkaConf.Topic, line.Text)
-		default:
-			time.Sleep(1 * time.Second)
-		}
-
-	}
 }

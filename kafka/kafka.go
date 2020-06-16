@@ -9,7 +9,6 @@ import (
 
 var (
 	client sarama.SyncProducer // 声明一个全局的kafka 生产者
-
 )
 
 // Init 初始化 client
