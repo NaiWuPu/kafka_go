@@ -19,7 +19,7 @@ func main() {
 		fmt.Printf("load ini filed, err %v\n", err)
 	}
 	// 1.初始化kafka 链接
-	err = kafka.Init([]string{cfg.KafkaConf.Address})
+	err = kafka.Init([]string{cfg.KafkaConf.Address}, cfg.KafkaConf.ChanMaxSize)
 	if err != nil {
 		fmt.Printf("init Kafka failed, err:%v\n", err)
 		return
@@ -51,5 +51,4 @@ func main() {
 	// 3.打开日志文件准备收集日志
 	// 3.1 循环收集每一个收集项 创建tailObj
 	tailLog.Init(logEntryConf)
-
 }

@@ -56,7 +56,7 @@ func (t *TailTask) run() {
 	for {
 		select {
 		case line := <-t.instance.Lines:
-			kafka.Send2Kafka(t.Topic, line.Text) // 函数调函数
+			kafka.Send2Chan(t.Topic, line.Text) // 函数调函数
 		}
 	}
 }
