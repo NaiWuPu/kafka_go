@@ -13,8 +13,8 @@ var (
 )
 
 type LogEntry struct {
-	Path  string `json:"path"`		// 日志存放的路径
-	Topic string `json:"topic"`		// 日志要法网kafka中的topic
+	Path  string `json:"path"`  // 日志存放的路径
+	Topic string `json:"topic"` // 日志要法网kafka中的topic
 }
 
 func Init(addr string, timeOut time.Duration) (err error) {
@@ -58,4 +58,26 @@ func PutConf(key, value string) error {
 		fmt.Printf("put to etcd failed, err:%v\n", err)
 	}
 	return err
+}
+
+func WatchConf(key string, newConfch chan<- []*LogEntry) {
+	ch := cli.Watch(context.Background(), key)
+
+	for wresp := range ch {
+		for _, evt := range wresp.Events {
+			fmt.Printf("Type:%v key:%v value:%v \n", evt.Type, string(evt.Kv.Key), string(evt.Kv.Value))
+			// 通知别人	taillog.tskMgr
+			var newConf []*LogEntry
+			if evt.Type != clientv3.EventTypeDelete {
+				// 如果是删除操作，传一个空的配置项
+				err := json.Unmarshal(evt.Kv.Value, &newConf)
+				if err != nil {
+					fmt.Printf("unmarshal failed, err:%v \n", err)
+					continue
+				}
+				fmt.Printf("get new conf %v\n", newConf)
+				newConfch <- newConf
+			}
+		}
+	}
 }

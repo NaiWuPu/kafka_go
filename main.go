@@ -7,6 +7,7 @@ import (
 	"log_agent/etcd"
 	"log_agent/kafka"
 	"log_agent/tailLog"
+	"sync"
 	"time"
 )
 
@@ -48,7 +49,16 @@ func main() {
 	}
 	fmt.Printf("get conf from etcd success :%v \n", logEntryConf)
 
+
 	// 3.打开日志文件准备收集日志
 	// 3.1 循环收集每一个收集项 创建tailObj
-	tailLog.Init(logEntryConf)
+	tailLog.Init(logEntryConf)	// 因为NewConfChan 访问了 tskMgr 的newConfChan, 这个channel是在此步操作执行初始化
+
+	// 哨兵监视 etcd 变化
+	newConfChan := tailLog.NewConfChan()	// 从taillog 包中获取对外暴露的通道
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go etcd.WatchConf(cfg.EtcdConf.Key, newConfChan) 	// 哨兵发现最新的配置信息会通知上面的通道
+	wg.Wait()
+
 }
