@@ -7,6 +7,7 @@ import (
 	"log_agent/etcd"
 	"log_agent/kafka"
 	"log_agent/tailLog"
+	"log_agent/utils"
 	"sync"
 	"time"
 )
@@ -34,21 +35,19 @@ func main() {
 		return
 	}
 	fmt.Println("init etcd success")
-
-	// 写入etcdConf
-	//err = etcd.PutConf(cfg.EtcdConf.Key, `[{"path":"c:/tmp/nginx.log","topic":"web_log"},{"path":"d:/xxx/redis.log","topic":"redis_log"}]`)
-	//if err != nil {
-	//	fmt.Printf("etcd PutConf err :%v\n", err)
-	//}
-
+	// 为了实现每个logagent 都拉取自己独有的配置，所以要以自己的IP地址作为区分
+	Ipstr, err := utils.GetOutboundIp()
+	if err != nil{
+		panic(err)
+	}
+	etcdConfKey := fmt.Sprintf(cfg.EtcdConf.Key, Ipstr)
 	// 2.1 从etcd 中获取日志收集项的配置信息
-	logEntryConf, err := etcd.GetConf(cfg.EtcdConf.Key)
+	logEntryConf, err := etcd.GetConf(etcdConfKey)
 	if err != nil {
 		fmt.Printf("etcd.GetConf failed, err:%v\n", err)
 		return
 	}
 	fmt.Printf("get conf from etcd success :%v \n", logEntryConf)
-
 
 	// 3.打开日志文件准备收集日志
 	// 3.1 循环收集每一个收集项 创建tailObj
