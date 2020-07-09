@@ -27,7 +27,10 @@ func main() {
 	fmt.Println("init etcd success")
 
 	// 写入etcdConf
-	err = etcd.PutConf(cfg1.EtcdConf.Key, `[{"path":"c:/tmp/nginx.log","topic":"web_log"},{"path":"d:/xxx/redis.log","topic":"redis_log"}]`)
+	key := cfg1.EtcdConf.Key
+	key = "/logagent/172.16.1.218/collect_config"
+	value := `[{"path":"D:/gopath/src/log_agent/log/my.log","topic":"web_log"},{"path":"d:/xxx/redis.log","topic":"redis_log"}]`
+	err = etcd.PutConf(key, value)
 	if err != nil {
 		fmt.Printf("etcd PutConf err :%v\n", err)
 	}
